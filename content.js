@@ -1,6 +1,6 @@
 console.log("content started");
 chrome.runtime.onMessage.addListener(StartDownload);
-var ImgDiv= document.getElementById('SearchResultsGrid').getElementsByClassName('styles__image--G1zaZ styles__productImage--3ZNPD styles__rounded--Mb445 styles__fluid--1Qsjf');
+var ImgDiv= document.getElementById('SearchResultsGrid').querySelectorAll('a.styles__link--3QJ5N img.styles__fluid--1Qsjf.styles__image--G1zaZ.styles__productImage--k9E27');
 console.log(ImgDiv.length);
 chrome.runtime.sendMessage({
   from:"content",
@@ -31,6 +31,7 @@ async function StartDownload(mes,sender,sendRes){
             }); 
             await sleep(50);
       }
+      console.log({ImgDiv})
       for (img of ImgDiv){		
       	var ImgURL = Magni(img.src);
     		var ImgName = img.alt;

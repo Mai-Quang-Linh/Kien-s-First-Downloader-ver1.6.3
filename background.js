@@ -10,8 +10,8 @@ chrome.downloads.onChanged.addListener(function(info){
 });
 
 chrome.runtime.onMessage.addListener(async function(request,sender){
-	console.log(sender);
-	console.log(request);
+	console.log({sender});
+	console.log({request});
 	if (request.from=="content"){
 		if (request.txt=="loaded"){
 			if (pending[sender.tab.id]!=null&&pending[sender.tab.id]>0){
@@ -21,7 +21,7 @@ chrome.runtime.onMessage.addListener(async function(request,sender){
 		}else if (request.txt=="continue"){
 			pending[sender.tab.id]=request.remain;
 			while (downloadremaining>0){
-				console.log(downloadremaining);
+				console.log({downloadremaining});
 				await sleep(1000);
 			}
 			chrome.tabs.update(sender.tab.id, {url: request.url});
@@ -29,22 +29,22 @@ chrome.runtime.onMessage.addListener(async function(request,sender){
 			pending[sender.tab.id]=0;
 		}else if (request.txt=="download"){
 			while(downloadremaining>3){
-				console.log(downloadremaining);
+				console.log({downloadremaining});
 	        	await sleep(200);
 	        }
 			try{
 				downloadremaining++;
-				console.log(request.ImgName);
+				console.log("request: ",request.ImgName);
+				console.log("filename: ",dirs[sender.tab.id]+clearIll(request.ImgName,dirs[sender.tab.id])+getExt(request.ImgURL))
 				chrome.downloads.download({
-		            url:      request.ImgURL,
-		            filename: dirs[sender.tab.id]+clearIll(request.ImgName,dirs[sender.tab.id])+getExt(request.ImgURL),
-		            saveAs:   false
-		        });
+						url:      request.ImgURL,
+						filename: dirs[sender.tab.id]+clearIll(request.ImgName,dirs[sender.tab.id])+getExt(request.ImgURL),
+						saveAs:   false
+				});
+			} catch(ex){
+				downloadremaining--;
+				console.log("error:"+ex+"\n\tAt"+dirs[sender.tab.id]+clearIll(request.ImgName,dirs[sender.tab.id])+getExt(request.ImgURL));
 			}
-	        catch(ex){
-	        	downloadremaining--;
-	        	console.log("error:"+ex+"\n\tAt"+dirs[sender.tab.id]+clearIll(request.ImgName,dirs[sender.tab.id])+getExt(request.ImgURL));
-	        }
 	    	//send msg
 	   			chrome.tabs.sendMessage(sender.tab.id,{
 	   				from: "background",
@@ -75,8 +75,9 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 function clearIll(name,dir){
+	name=name.replaceAll(" ","_");
 	var ill="<>:\"\\/|?*"+String.fromCharCode(173);
-	for (char of ill){
+	for (const char of ill){
 		name=name.replaceAll(char,"");
 	}
 	while (name[0]==' '){
